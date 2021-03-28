@@ -11,5 +11,5 @@ The Run-WeeklyMaintenance.ps1 script executes the following actions:
 5) Clean up local user profiles on session hosts
 6) CHeck the status of all automatically started Windows services on session hosts
 7) Remove maintenance mode
-### Software deployment
-### Server health check and trace collection
+### Active Directory
+### Microsoft 365 migrations and administration
