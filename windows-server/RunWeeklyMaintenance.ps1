@@ -443,10 +443,62 @@ Runs in loop constantly allowing user to run commands from number of options unt
     Write-Host "3: Press '3' for applying application updates to Citrix Windows server(s)"
     Write-Host "4: Press '4' for rebooting Citrix Windows server(s)"
     Write-Host "5: Press '5' for cleaning up local profiles in Citrix Windows server(s)"
-    Write-Host "6: Press '6' for checking Windows service status in Citrix Windows server(s)"
-    Write-Host "7: Press '7' for setting Citrix Windows maintenance mode off"
+    Write-Host "6: Press '6' for running chkdsk in Windows server(s)"
+    Write-Host "7: Press '7' for running sfc /scannow in Windows server(s)"
+    Write-Host "8: Press '8' for running DISM /Online /Cleanup-Image /ScanHealth in Windows server(s)"
+    Write-Host "9: Press '9' for checking Windows service status in Citrix Windows server(s)"
+    Write-Host "10: Press '10' for setting Citrix Windows maintenance mode off"
     Write-Host "Q: Press 'Q' to quit this script."
 }
+
+function New-Menu {
+  <#Function documentation
+          .SYNOPSIS
+  An alternative way to show a Powershell menu
+          .DESCRIPTION
+  An alternative way to show a Powershell menu
+  
+          .PARAMETER Title
+  Title of the mernu       
+         .PARAMETER Question
+  Question with options which the user must act upon       
+          .INPUTS
+          User input for Yes, No
+  
+          .OUTPUTS
+          N/A
+  
+          .EXAMPLE
+  N/A
+          .LINK
+          Online version: https://github.com/stefanoscloud
+  
+      #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Title,
+  
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Question
+    )
+    
+    $Yes = [ChoiceDescription]::new('&Yes', 'Yes, confirm script execution')
+    $No = [ChoiceDescription]::new('&No', 'No, stop script execution')
+  
+    $options = [ChoiceDescription[]]($Yes, $No)
+  
+    $result = $host.ui.PromptForChoice($Title, $Question, $options, 0)
+  
+    switch ($result) {
+        0 { 'You confirmed script execution. Proceeding...' }
+        1 { 'You confirmed that script execution should be stopped. Goodbye!' ; Exit }
+    }
+  
+  
+  }
 function SetMaintenanceMode {
   <#Function documentation
         .SYNOPSIS
@@ -512,54 +564,6 @@ End {
     Write-Log -Level INFO -Message "Function SetMaintenanceMode execution completed successfully."
   }
 }
-
-}
-function New-Menu {
-<#Function documentation
-        .SYNOPSIS
-An alternative way to show a Powershell menu
-        .DESCRIPTION
-An alternative way to show a Powershell menu
-
-        .PARAMETER Title
-Title of the mernu       
-       .PARAMETER Question
-Question with options which the user must act upon       
-        .INPUTS
-        User input for Yes, No
-
-        .OUTPUTS
-        N/A
-
-        .EXAMPLE
-N/A
-        .LINK
-        Online version: https://github.com/stefanoscloud
-
-    #>
-  [CmdletBinding()]
-  param(
-      [Parameter(Mandatory)]
-      [ValidateNotNullOrEmpty()]
-      [string]$Title,
-
-      [Parameter(Mandatory)]
-      [ValidateNotNullOrEmpty()]
-      [string]$Question
-  )
-  
-  $Yes = [ChoiceDescription]::new('&Yes', 'Yes, confirm script execution')
-  $No = [ChoiceDescription]::new('&No', 'No, stop script execution')
-
-  $options = [ChoiceDescription[]]($Yes, $No)
-
-  $result = $host.ui.PromptForChoice($Title, $Question, $options, 0)
-
-  switch ($result) {
-      0 { 'You confirmed script execution. Proceeding...' }
-      1 { 'You confirmed that script execution should be stopped. Goodbye!' ; Exit }
-  }
-
 
 }
 
@@ -880,6 +884,6 @@ Finally {
 }
 
 #Stop Logging
-# Stop-Log -LogPath $sLogFile
+#Stop-Log -LogPath $sLogFile
 
 #endregion MainScript
