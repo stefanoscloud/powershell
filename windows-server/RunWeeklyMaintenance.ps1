@@ -751,9 +751,9 @@ Try {
         Start-Sleep 30
         Write-Log -Level INFO -Message "All rebooted servers have come up"
         Write-Host -ForegroundColor "DarkGreen" "All rebooted servers have come up"
-
-
       }
+
+
       #Clean up local profiles of the Windows servers in the csv file, using DelProf2 tool  /q switch
       '5' {
         $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
@@ -803,12 +803,171 @@ Try {
         Write-Host -ForegroundColor "DarkGreen" "Local user profile clean up completed."
         #Close PSSession objects opened on each server for PatchMyPC
         Get-Pssession | Remove-PsSession
-
-
-
       }
+
+
+            #Run chkdsk /F on servers in .csv file
+            '6' {
+              $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
+              if(!$ServerListCsvPath)
+              {
+                $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
+              }
+              else {
+                $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
+              }
+              $ServerList = $ServerListCsvPathExport.Servers
+      
+              Write-Log -Level INFO -Message "You have chosen to run chkdsk on the following servers:"
+              Write-Log -Level INFO -Message "$ServerList"
+              Write-Host -ForegroundColor "Yellow" "You have chosen to run chkdsk on the following servers:"
+              Write-Host -ForegroundColor "Yellow" "$ServerList"
+              New-Menu -Title 'Please confirm servers in the selected CSV file are valid before running this option.' -Question 'Proceed with script execution?'
+      
+              Write-Log -Level INFO -Message "Starting execution of chkdsk..."
+              Write-Host -ForegroundColor "Yellow" "Starting execution of chkdsk..."
+              foreach ($Server in $ServerList)
+              {
+                #Interactive session seems to be required
+                $s1 = New-PSSession -computername $Server
+                Invoke-Command -Session $s1 -ScriptBlock {Start-Process -FilePath "C:\Windows\System32\chkdsk.exe" -ArgumentList "/F"}
+                # Exit-PSSession
+                Write-Log -Level INFO -Message "Initiating chkdsk /F command on server $Server..."
+                Write-Host -ForegroundColor "Yellow" "Initiating  chkdsk /F command on server $Server..."
+              }
+      
+              foreach ($Server in $ServerList)
+              {
+                $s2 = New-PSSession -computername $Server
+                $ChkdskProcessStatus = Invoke-Command -Session $s2 -ScriptBlock {Get-Process | Where-Object {$_.ProcessName -eq "chkdsk"}}
+                while($ChkdskProcessStatus)
+                {
+                  Start-Sleep 30
+                  Write-Log -Level INFO -Message "Waiting till chkdsk /F is completed for server $Server..."
+                  Write-Host -ForegroundColor "Yellow" "Waiting till chkdsk /F is completed for server $Server..."
+                  $ChkdskProcessStatus = Invoke-Command -Session $s2 -ScriptBlock {Get-Process | Where-Object {$_.ProcessName -eq "chkdsk"}}
+                }
+                Write-Log -Level INFO -Message "Chkdsk /F command for server $Server completed successfully."
+                Write-Host -ForegroundColor "DarkGreen" "Chkdsk /F command for server $Server completed successfully."
+              }
+              
+              Write-Log -Level INFO -Message "Chkdsk /F command completed."
+              Write-Host -ForegroundColor "DarkGreen" "Chkdsk /F command completed."
+              #Close PSSession objects opened on each server for PatchMyPC
+              Get-Pssession | Remove-PsSession
+            }
+
+
+
+             #Run sfc /scannow on servers in .csv file
+             '7' {
+              $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
+              if(!$ServerListCsvPath)
+              {
+                $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
+              }
+              else {
+                $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
+              }
+              $ServerList = $ServerListCsvPathExport.Servers
+      
+              Write-Log -Level INFO -Message "You have chosen to run sfc /scannow on the following servers:"
+              Write-Log -Level INFO -Message "$ServerList"
+              Write-Host -ForegroundColor "Yellow" "You have chosen to run sfc /scannow on the following servers:"
+              Write-Host -ForegroundColor "Yellow" "$ServerList"
+              New-Menu -Title 'Please confirm servers in the selected CSV file are valid before running this option.' -Question 'Proceed with script execution?'
+      
+              Write-Log -Level INFO -Message "Starting execution of sfc /scannow..."
+              Write-Host -ForegroundColor "Yellow" "Starting execution of sfc /scannow..."
+              foreach ($Server in $ServerList)
+              {
+                #Interactive session seems to be required
+                $s1 = New-PSSession -computername $Server
+                Invoke-Command -Session $s1 -ScriptBlock {Start-Process -FilePath "C:\Windows\System32\sfc.exe" -ArgumentList "/scannow"}
+                # Exit-PSSession
+                Write-Log -Level INFO -Message "Initiating sfc /scannow command on server $Server..."
+                Write-Host -ForegroundColor "Yellow" "Initiating sfc /scannow command on server $Server..."
+              }
+      
+              foreach ($Server in $ServerList)
+              {
+                $s2 = New-PSSession -computername $Server
+                $SfcProcessStatus = Invoke-Command -Session $s2 -ScriptBlock {Get-Process | Where-Object {$_.ProcessName -eq "sfc"}}
+                while($SfcProcessStatus)
+                {
+                  Start-Sleep 30
+                  Write-Log -Level INFO -Message "Waiting till sfc /scannow is completed for server $Server..."
+                  Write-Host -ForegroundColor "Yellow" "Waiting till sfc /scannow is completed for server $Server..."
+                  $SfcProcessStatus = Invoke-Command -Session $s2 -ScriptBlock {Get-Process | Where-Object {$_.ProcessName -eq "sfc"}}
+                }
+                Write-Log -Level INFO -Message "sfc /scannow command for server $Server completed successfully."
+                Write-Host -ForegroundColor "DarkGreen" "sfc /scannow command for server $Server completed successfully."
+              }
+              
+              Write-Log -Level INFO -Message "sfc /scannow command completed."
+              Write-Host -ForegroundColor "DarkGreen" "sfc /scannow command completed."
+              #Close PSSession objects opened on each server for PatchMyPC
+              Get-Pssession | Remove-PsSession
+            }
+
+
+
+
+            #Run DISM /Online /Cleanup-Image /ScanHealth on servers in .csv file
+            '8' {
+              $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
+              if(!$ServerListCsvPath)
+              {
+                $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
+              }
+              else {
+                $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
+              }
+              $ServerList = $ServerListCsvPathExport.Servers
+      
+              Write-Log -Level INFO -Message "You have chosen to run DISM /Online /Cleanup-Image /ScanHealth on the following servers:"
+              Write-Log -Level INFO -Message "$ServerList"
+              Write-Host -ForegroundColor "Yellow" "You have chosen to run DISM /Online /Cleanup-Image /ScanHealth on the following servers:"
+              Write-Host -ForegroundColor "Yellow" "$ServerList"
+              New-Menu -Title 'Please confirm servers in the selected CSV file are valid before running this option.' -Question 'Proceed with script execution?'
+      
+              Write-Log -Level INFO -Message "Starting execution of DISM /Online /Cleanup-Image /ScanHealth..."
+              Write-Host -ForegroundColor "Yellow" "Starting execution of DISM /Online /Cleanup-Image /ScanHealth..."
+              foreach ($Server in $ServerList)
+              {
+                #Interactive session seems to be required
+                $s1 = New-PSSession -computername $Server
+                Invoke-Command -Session $s1 -ScriptBlock {Start-Process -FilePath "C:\Windows\System32\dism.exe" -ArgumentList "/Online /Cleanup-Image /ScanHealth"}
+                # Exit-PSSession
+                Write-Log -Level INFO -Message "Initiating DISM /Online /Cleanup-Image /ScanHealth command on server $Server..."
+                Write-Host -ForegroundColor "Yellow" "Initiating DISM /Online /Cleanup-Image /ScanHealth command on server $Server..."
+              }
+      
+              foreach ($Server in $ServerList)
+              {
+                $s2 = New-PSSession -computername $Server
+                $DismProcessStatus = Invoke-Command -Session $s2 -ScriptBlock {Get-Process | Where-Object {$_.ProcessName -eq "dism"}}
+                while($DismProcessStatus)
+                {
+                  Start-Sleep 30
+                  Write-Log -Level INFO -Message "Waiting till DISM /Online /Cleanup-Image /ScanHealth is completed for server $Server..."
+                  Write-Host -ForegroundColor "Yellow" "Waiting till DISM /Online /Cleanup-Image /ScanHealth is completed for server $Server..."
+                  $DismProcessStatus = Invoke-Command -Session $s2 -ScriptBlock {Get-Process | Where-Object {$_.ProcessName -eq "dism"}}
+                }
+                Write-Log -Level INFO -Message "DISM /Online /Cleanup-Image /ScanHealth command for server $Server completed successfully."
+                Write-Host -ForegroundColor "DarkGreen" "DISM /Online /Cleanup-Image /ScanHealth command for server $Server completed successfully."
+              }
+              
+              Write-Log -Level INFO -Message "DISM /Online /Cleanup-Image /ScanHealth command completed."
+              Write-Host -ForegroundColor "DarkGreen" "DISM /Online /Cleanup-Image /ScanHealth command completed."
+              #Close PSSession objects opened on each server for PatchMyPC
+              Get-Pssession | Remove-PsSession
+            }
+
+
+
       #Check status of automatic Windows Services of the Windows servers in the csv file and start any stopped services
-      '6' {
+      '9' {
         $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
@@ -839,7 +998,7 @@ Try {
 
       }
       #Disable maintenance mode for all servers in the csv file
-      '7' {
+      '10' {
         $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
