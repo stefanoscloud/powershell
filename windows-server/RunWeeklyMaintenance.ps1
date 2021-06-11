@@ -10,7 +10,7 @@ using namespace System.Management.Automation.Host
 #region Documentation
 <#
 .SYNOPSIS
-  This script automates the Fermorite Cloud Citrix VDA server weekly reboot schedule
+  This script automates the Cloud server weekly reboot schedule
 
 .DESCRIPTION
   The script carries out the following tasks on a weekly basis. It can be triggered via scheduled task or manually by an administrator user. 
@@ -42,7 +42,7 @@ using namespace System.Management.Automation.Host
 
 .NOTES
   Version:        1.0
-  Author:         Fermorite Cloud
+  Author:         Stefanos Cloud
   Creation Date:  10 March 2021
   Purpose/Change: Initial script development
   External PS repositories:   The script utilizes the following reposities and modules: 
@@ -51,7 +51,7 @@ using namespace System.Management.Automation.Host
     * Powershell menu using .NET objects: https://adamtheautomator.com/powershell-menu/ 
 
 .EXAMPLE
-  Fermorite-Cloud-Maintenance-VDA.ps1 VDAServers.csv
+  RunWeeklyMaintenance.ps1 DemoServers.csv
   
   Run the Citrix VDA maintenance script for all servers included in the VDAServers.csv file.
 #>
@@ -430,7 +430,7 @@ Runs in loop constantly allowing user to run commands from number of options unt
 
     #>
     param (
-        [string]$Title = 'Fermorite Cloud Maintenance Script'
+        [string]$Title = 'Weekly Server Maintenance Script'
     )
     $ErrorActionPreference = 'Stop'
     Clear-Host
