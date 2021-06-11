@@ -33,6 +33,7 @@ using namespace System.Management.Automation.Host
 
 .PARAMETER Windows ServerserverList
   Provide name of csv file containing the list of Windows servers to maintain and reboot.
+  This .csv file can be chosen by the user via the Powershell menu function during runtime
 
 .INPUTS Csv File
   The script takes a Windows Servers.csv file as input.
