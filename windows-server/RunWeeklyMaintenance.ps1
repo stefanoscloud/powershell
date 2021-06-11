@@ -10,32 +10,32 @@ using namespace System.Management.Automation.Host
 #region Documentation
 <#
 .SYNOPSIS
-  This script automates the Cloud server weekly reboot schedule
+  This script automates Windows server weekly reboot schedule
 
 .DESCRIPTION
   The script carries out the following tasks on a weekly basis. It can be triggered via scheduled task or manually by an administrator user. 
-    * Put all Citrix VDA servers into maintenance mode
-    * Start logging off all users from the VDAs
+    * Put all Citrix Windows servers into maintenance mode
+    * Start logging off all users from the Windows Servers
     * Wait until all users are fully logged off (all file server sessions are closed)
-    * Perform proactive disk health checks on all Cloud servers
+    * Perform proactive disk health checks on all Windows servers
     * Install all latest application updates from PatchMyPC
-    * Reboot all VDA servers
-    * Run delprof on all VDA servers
+    * Reboot all Windows servers
+    * Run delprof on all Windows servers
     * Check all Windows automatic services running status
-    * Citrix VDA maintenance mode off for demo VDA server only
+    * Citrix Windows maintenance mode off for demo Windows server only
   
   The script must be run on the daas-mgmt server in elevated Powershell window with an administrator user who is member of the FrmOperations AD security group.
-  The script utilizes Windows PowerShell remoting and thus all remote VDA computers must be configured for remote management: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_requirements?view=powershell-7.1
+  The script utilizes Windows PowerShell remoting and thus all remote Windows computers must be configured for remote management: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_requirements?view=powershell-7.1
   After the script run is complete, the administrator must check the script execution log under C:\Scripts\Cloud folder to ensure that no errors occured and then launch a demo Citrix desktop to confirm operations
 
   Last manual step is to: 
-      * Citrix VDA maintenance mode off for remaining Citrix VDA servers
+      * Citrix Windows maintenance mode off for remaining Citrix Windows servers
 
-.PARAMETER VDAServerList
-  Provide name of csv file containing the list of Citrix VDA servers to maintain and reboot.
+.PARAMETER Windows ServerserverList
+  Provide name of csv file containing the list of Citrix Windows servers to maintain and reboot.
 
 .INPUTS Csv File
-  The script takes a VDAServers.csv file as input.
+  The script takes a Windows Serverservers.csv file as input.
 
 .OUTPUTS Log File
   The script execution log file is stored in C:\Scripts\Cloud\CloudMaintenance.log
@@ -53,7 +53,7 @@ using namespace System.Management.Automation.Host
 .EXAMPLE
   RunWeeklyMaintenance.ps1 DemoServers.csv
   
-  Run the Citrix VDA maintenance script for all servers included in the VDAServers.csv file.
+  Run the Citrix Windows maintenance script for all servers included in the Windows Serverservers.csv file.
 #>
 #endregion Documentation
 
@@ -68,8 +68,8 @@ $sLogFilename = "CloudMaintenance_$sCurrentDate.log"
 #Citrix Delivery Controller hostname required by the Citrix PS SDK cmdlets
 $sDDCHostname = "daas-ctxctrl01"
 $sDomainNETBIOS = "frmdaas"
-# $gVDAServerListCsvFilePath = "C:\Scripts\Cloud\VDAServers-DEMO-ONLY.csv"
-$gVDAServerListCsvFilePath = "C:\Scripts\Cloud\VDAServers.csv"
+# $gWindows ServerserverListCsvFilePath = "C:\Scripts\Cloud\Windows Serverservers-DEMO-ONLY.csv"
+$gWindows ServerserverListCsvFilePath = "C:\Scripts\Cloud\Windows Serverservers.csv"
 #endregion StaticVariables
 
 #region Parameters
@@ -77,8 +77,8 @@ $gVDAServerListCsvFilePath = "C:\Scripts\Cloud\VDAServers.csv"
 Param (
 # [Mandatory]  
 # [ValidateNotNullOrEmpty()]
-  # [string] $VDAServerList = $gVDAServerListCsvFilePath
-  [string] $VDAServerList
+  # [string] $Windows ServerserverList = $gWindows ServerserverListCsvFilePath
+  [string] $Windows ServerserverList
 )
 #endregion Parameters
 
@@ -234,13 +234,13 @@ Checks local profiles for RDS roaming or FsLogix and deletes and local profile l
     }
   }
 }
-function LogOffVDAUsers {
+function LogOffWindowsUsers {
   <# Function Documentation
         .SYNOPSIS
-        LogOffVDAUsers
+        LogOffWindowsUsers
 
         .DESCRIPTION
-       Logoff all users from a specified Citrix VDA server.
+       Logoff all users from a specified Citrix Windows server.
 
         .PARAMETER ServerName
         ServerName whose users to log off.
@@ -252,7 +252,7 @@ function LogOffVDAUsers {
         N/A
 
         .EXAMPLE
-        LogOffVDAUsers [Servername]
+        LogOffWindowsUsers [Servername]
 
         .LINK
         Online version: https://github.com/stefanoscloud
@@ -263,12 +263,12 @@ function LogOffVDAUsers {
   Param ([string[]] $SessionIDs, [string]$ServerName)
 
   Begin {
-    Write-Log -Level INFO -Message "Function LogOffVDAUsers is being initialized"
+    Write-Log -Level INFO -Message "Function LogOffWindowsUsers is being initialized"
   }
 
   Process {
     Try {
-      Write-Log -Level INFO -Message "Function LogOffVDAUsers execution started"
+      Write-Log -Level INFO -Message "Function LogOffWindowsUsers execution started"
 
     Invoke-Command -ComputerName $ServerName -ScriptBlock {
       $ErrorActionPreference = 'Stop'
@@ -294,7 +294,7 @@ function LogOffVDAUsers {
     }
 
     Catch {
-      Write-Log -Level ERROR -Message 'This is the exception stack of LogOffVDAUsers function: {0}!' -Arguments $_.Exception 
+      Write-Log -Level ERROR -Message 'This is the exception stack of LogOffWindowsUsers function: {0}!' -Arguments $_.Exception 
       $PSCmdlet.ThrowTerminatingError($PSItem)
       Break
     }
@@ -302,7 +302,7 @@ function LogOffVDAUsers {
 
   End {
     If ($?) {
-      Write-Log -Level INFO -Message "Function LogOffVDAUsers execution completed successfully."
+      Write-Log -Level INFO -Message "Function LogOffWindowsUsers execution completed successfully."
     }
   }
 }
@@ -438,22 +438,22 @@ Runs in loop constantly allowing user to run commands from number of options unt
     Write-Host -ForegroundColor "Red" "Please ensure that PSRemoting has been enabled on all target servers"
     Write-Host ""
 
-    Write-Host "1: Press '1' for setting Citrix VDA maintenance mode on"
-    Write-Host "2: Press '2' for logging off all users from Citrix VDA server(s)"
-    Write-Host "3: Press '3' for applying application updates to Citrix VDA server(s)"
-    Write-Host "4: Press '4' for rebooting Citrix VDA server(s)"
-    Write-Host "5: Press '5' for cleaning up local profiles in Citrix VDA server(s)"
-    Write-Host "6: Press '6' for checking Windows service status in Citrix VDA server(s)"
-    Write-Host "7: Press '7' for setting Citrix VDA maintenance mode off"
+    Write-Host "1: Press '1' for setting Citrix Windows maintenance mode on"
+    Write-Host "2: Press '2' for logging off all users from Citrix Windows server(s)"
+    Write-Host "3: Press '3' for applying application updates to Citrix Windows server(s)"
+    Write-Host "4: Press '4' for rebooting Citrix Windows server(s)"
+    Write-Host "5: Press '5' for cleaning up local profiles in Citrix Windows server(s)"
+    Write-Host "6: Press '6' for checking Windows service status in Citrix Windows server(s)"
+    Write-Host "7: Press '7' for setting Citrix Windows maintenance mode off"
     Write-Host "Q: Press 'Q' to quit this script."
 }
 function SetMaintenanceMode {
   <#Function documentation
         .SYNOPSIS
-        Set the maintenance mode of a Citrix VDA server
+        Set the maintenance mode of a Citrix Windows server
 
         .DESCRIPTION
-       Set the maintenance mode of a Citrix VDA server
+       Set the maintenance mode of a Citrix Windows server
 
         .PARAMETER MaintenanceMode
         Maintenace mode, true for enabled and false for disabled.
@@ -589,10 +589,10 @@ Try {
      {
        #Enable maintenance mode for all servers in the csv file
       '1' {
-        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gVDAServerListCsvFilePath"
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
-          $ServerListCsvPathExport = Import-Csv $gVDAServerListCsvFilePath
+          $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
         }
         else {
           $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
@@ -617,10 +617,10 @@ Try {
       }
       #Logoff users
       '2' {
-        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gVDAServerListCsvFilePath"
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
-          $ServerListCsvPathExport = Import-Csv $gVDAServerListCsvFilePath
+          $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
         }
         else {
           $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
@@ -640,7 +640,7 @@ Try {
           $ActiveSessionIDs = Get-ActiveSessions -ServerName $Server | Select-Object ID
           Write-Log -Level INFO -Message "Received active sessions of server $Server, now logging off users..."
           Write-Host -ForegroundColor "Yellow" "Received active sessions of server $Server, now logging off users..."
-          LogOffVDAUsers -SessionIDs $ActiveSessionIDs.ID -ServerName $Server
+          LogOffWindowsUsers -SessionIDs $ActiveSessionIDs.ID -ServerName $Server
           Write-Log -Level INFO -Message "All RDP user sessions in server $Server have been logged off"
           Write-Host -ForegroundColor "DarkGreen" "All RDP user sessions in server $Server have been logged off"
         }
@@ -651,12 +651,12 @@ Try {
         Start-Sleep -seconds 60        
         Write-Host -ForegroundColor "Red" "Important! Please manually check that all SMB sessions are closed from the Computer Management MMC console before proceeding with next step"
       }
-      #Apply application updates to the VDA servers of the csv file, using PatchMyPC tool /s switch
+      #Apply application updates to the Windows servers of the csv file, using PatchMyPC tool /s switch
       '3' {
-        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gVDAServerListCsvFilePath"
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
-          $ServerListCsvPathExport = Import-Csv $gVDAServerListCsvFilePath
+          $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
         }
         else {
           $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
@@ -701,12 +701,12 @@ Try {
         Get-Pssession | Remove-PsSession
 
       }
-      #Reboot VDA servers in the csv file
+      #Reboot Windows servers in the csv file
       '4' {
-        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gVDAServerListCsvFilePath"
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
-          $ServerListCsvPathExport = Import-Csv $gVDAServerListCsvFilePath
+          $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
         }
         else {
           $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
@@ -750,12 +750,12 @@ Try {
 
 
       }
-      #Clean up local profiles of the VDA servers in the csv file, using DelProf2 tool  /q switch
+      #Clean up local profiles of the Windows servers in the csv file, using DelProf2 tool  /q switch
       '5' {
-        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gVDAServerListCsvFilePath"
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
-          $ServerListCsvPathExport = Import-Csv $gVDAServerListCsvFilePath
+          $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
         }
         else {
           $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
@@ -803,12 +803,12 @@ Try {
 
 
       }
-      #Check status of automatic Windows Services of the VDA servers in the csv file and start any stopped services
+      #Check status of automatic Windows Services of the Windows servers in the csv file and start any stopped services
       '6' {
-        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gVDAServerListCsvFilePath"
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
-          $ServerListCsvPathExport = Import-Csv $gVDAServerListCsvFilePath
+          $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
         }
         else {
           $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
@@ -836,10 +836,10 @@ Try {
       }
       #Disable maintenance mode for all servers in the csv file
       '7' {
-        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gVDAServerListCsvFilePath"
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include. Use pre-formatted csv. Leave blank for default $gWindows ServerserverListCsvFilePath"
         if(!$ServerListCsvPath)
         {
-          $ServerListCsvPathExport = Import-Csv $gVDAServerListCsvFilePath
+          $ServerListCsvPathExport = Import-Csv $gWindows ServerserverListCsvFilePath
         }
         else {
           $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
