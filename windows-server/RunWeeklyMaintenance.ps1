@@ -24,7 +24,7 @@ using namespace System.Management.Automation.Host
     * Check all Windows automatic services running status
     * Citrix Windows maintenance mode off for demo Windows server only
   
-  The script must be run on the daas-mgmt server in elevated Powershell window with an administrator user who is member of the FrmOperations AD security group.
+  The script must be run on a management server in elevated Powershell window with an administrator user who is member of a proper Operations AD security group.
   The script utilizes Windows PowerShell remoting and thus all remote Windows computers must be configured for remote management: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_requirements?view=powershell-7.1
   After the script run is complete, the administrator must check the script execution log under C:\Scripts\Cloud folder to ensure that no errors occured and then launch a demo Citrix desktop to confirm operations
 
@@ -32,10 +32,10 @@ using namespace System.Management.Automation.Host
       * Citrix Windows maintenance mode off for remaining Citrix Windows servers
 
 .PARAMETER Windows ServerserverList
-  Provide name of csv file containing the list of Citrix Windows servers to maintain and reboot.
+  Provide name of csv file containing the list of Windows servers to maintain and reboot.
 
 .INPUTS Csv File
-  The script takes a Windows Serverservers.csv file as input.
+  The script takes a Windows Servers.csv file as input.
 
 .OUTPUTS Log File
   The script execution log file is stored in C:\Scripts\Cloud\CloudMaintenance.log
@@ -66,8 +66,8 @@ $sLogPath = 'C:\Scripts\Cloud\Logs'
 $sCurrentDate = (get-date).ToString('ddMMyyyy')
 $sLogFilename = "CloudMaintenance_$sCurrentDate.log"
 #Citrix Delivery Controller hostname required by the Citrix PS SDK cmdlets
-$sDDCHostname = "daas-ctxctrl01"
-$sDomainNETBIOS = "frmdaas"
+$sDDCHostname = "CitrixDDCHostname"
+$sDomainNETBIOS = "DomainNetbios"
 # $gWindows ServerserverListCsvFilePath = "C:\Scripts\Cloud\Windows Serverservers-DEMO-ONLY.csv"
 $gWindows ServerserverListCsvFilePath = "C:\Scripts\Cloud\Windows Serverservers.csv"
 #endregion StaticVariables
@@ -87,7 +87,7 @@ Param (
 #Set Error Action to Stop
 $ErrorActionPreference = 'Stop'
 #Import Modules & Snap-ins
-#WriteLogEntry module is available in Daas-Mgmt server under C:\Scripts\Cloud\PSLogging folder.
+#WriteLogEntry module is available in the management server under C:\Scripts\Cloud\PSLogging folder.
 Import-Module -Name Logging -Verbose
 Set-LoggingDefaultLevel -Level 'DEBUG' 
 Add-LoggingTarget -Name File -Configuration @{Level = 'DEBUG'; Path = "$sLogPath\$sLogFilename"}
