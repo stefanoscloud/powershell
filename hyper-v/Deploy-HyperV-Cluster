@@ -1,0 +1,63 @@
+#Actual script to be executed on the first Hyper-V node of the WSFC cluster
+#This is for HyperV01 virtualization host
+
+#Install server roles and features
+Import-Module ServerManager
+Add-WindowsFeature Multipath-IO
+Install-WindowsFeature -Name Failover-Clustering –IncludeManagementTools
+Install-WindowsFeature Hyper-V
+
+#Configure IP addressing of the storage pNICs - Assuming four storage pNICs - Ensure redundancy of storage cabling paths with LACP switch ports
+#Adjust subnetting as per your requirements, the below is only a sample
+New-NetIPAddress -InterfaceAlias "NIC1" -IPAddress 192.168.10.11 -PrefixLength 24
+New-NetIPAddress -InterfaceAlias "NIC3" -IPAddress 192.168.11.11 -PrefixLength 24
+New-NetIPAddress -InterfaceAlias "NIC5" -IPAddress 192.168.12.11 -PrefixLength 24
+New-NetIPAddress -InterfaceAlias "NIC7" -IPAddress 192.168.13.11 -PrefixLength 24
+
+#The below two commands must be run manually in the HyperV host for configuring iSCSI storage
+#mpiocpl.exe -> add support for ISCSI devices
+#mpclaim –s –d
+#Install storage vendor iSCSI driver on the Hyper-V host
+#Enable and configure MPIO (storage multipathing)
+
+#Configure NIC teaming for HyperV WSFC cluster and client traffic, in the below example four pNICs are utilized
+New-NetLbfoTeam -Name "HyperVTeam01" -TeamMembers "NIC2", "NIC4", "NIC6", "NIC8" -TeamingMode LACP -LoadBalancingAlgorithm TransportPorts
+New-VMSwitch -Name "HyperVSwitch01" -AllowManagementOS 0 -MinimumBandwidthMode Weight -NetAdapterName "HyperVTeam01"
+
+#Configure Jumbo frames, check pNIC manufacturer for other possible optimized values
+Get-NetAdapterAdvancedProperty -Name "NIC*" -DisplayName "Jumbo Frame" | Set-NetAdapterAdvancedProperty -RegistryValue "9216"
+Get-NetAdapterAdvancedProperty -Name "NIC*" -DisplayName "Jumbo Mtu" | Set-NetAdapterAdvancedProperty -RegistryValue "9000"
+Get-NetAdapterAdvancedProperty -Name "NIC*"
+
+#Configure vNICs, Three virtual networks should be created at minimum, namely Management, Cluster and LiveMigration
+Add-VMNetworkAdapter –ManagementOS –Name "Management" –SwitchName "HyperVSwitch01"
+Add-VMNetworkAdapter -ManagementOS -Name "Cluster" -SwitchName "HyperVSwitch01"
+Add-VMNetworkAdapter -ManagementOS -Name "LiveMigration" -SwitchName "HyperVSwitch01"
+
+#Configure VLANs in the vNICs
+Set-VMNetworkAdapterVlan –ManagementOS –VMNetWorkAdapterName "Management" -Access –VlanId 20
+Set-VMNetworkAdapterVlan –ManagementOS –VMNetWorkAdapterName "Cluster" -Access –VlanId 21
+Set-VMNetworkAdapterVlan –ManagementOS –VMNetWorkAdapterName "LiveMigration" -Access –VlanId 22
+Get-NetAdapterVMQ -IncludeHidden
+
+#Configure Jumbo frames in the vNICs
+Get-NetAdapterAdvancedProperty -Name "vEthernet (LiveMigration)", "vEthernet (Management)", "vEthernet (Cluster)" -DisplayName "Jumbo Packet" | Set-NetAdapterAdvancedProperty -RegistryValue "9014"
+
+#Configure bandwidth allocation settings
+Set-VMNetworkAdapter –ManagementOS –Name "Management" –MinimumBandwidthWeight 10
+Set-VMNetworkAdapter -ManagementOS -Name "Cluster" -MinimumBandwidthWeight 30
+Set-VMNetworkAdapter -ManagementOS -Name "LiveMigration" -MinimumBandwidthWeight 60
+
+#Configure IP addressing of the vNICs and set DNS servers, set as per your network subnetting design, the below are only samples
+New-NetIPAddress -InterfaceAlias "vEthernet (Management)" -IPAddress 10.1.1.11 -DefaultGateway 10.10.10.1 -PrefixLength 24
+New-NetIPAddress -InterfaceAlias "vEthernet (Cluster)" -IPAddress 10.1.2.11 -PrefixLength 24
+New-NetIPAddress -InterfaceAlias "vEthernet (LiveMigration)" -IPAddress 10.1.3.11 -PrefixLength 24
+Set-DnsClientServerAddress -InterfaceAlias "vEthernet (Management)" -ServerAddresses 172.16.1.10, 172.16.1.11
+
+# After above steps are complete, run the following validation tasks
+#JOIN HYPER-V SERVER TO AN AD DOMAIN
+#ACTIVATE WINDOWS SERVER LICENSING
+#TEST HYPER-V LIVE MIGRATION
+#RUN WSFC CLUSTER VALIDATION WIZARD FULL TESTS
+#CHECK ALL WSFC CLUSTER LOGS
+
