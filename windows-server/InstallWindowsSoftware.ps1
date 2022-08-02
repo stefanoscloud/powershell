@@ -1,13 +1,16 @@
 #region Namespaces
+#----------------------------------------------------------[Namespaces]----------------------------------------------------------
 using namespace System.Management.Automation.Host
 #endregion Namespaces
 
 #region ScriptRequirements
+#----------------------------------------------------------[Script requirements]----------------------------------------------------------
 #requires -version 4
 #requires -Modules logging
 #endregion ScriptRequirements
 
 #region Documentation
+#----------------------------------------------------------[Script documentation]----------------------------------------------------------
 <#
 .SYNOPSIS
   This script automates Windows software installation into multiple machines provided in a csv list
@@ -27,7 +30,6 @@ using namespace System.Management.Automation.Host
   Purpose/Change: Initial script development
   External PS repositories:   The script utilizes the following reposities and modules: 
     * Powershell Logging functions from https://github.com/EsOsO/Logging/wiki/Usage.   
-    * Powershell menu using .NET objects: https://adamtheautomator.com/powershell-menu/ 
 .EXAMPLE
   InstallWindowsSoftware.ps1 WindowsMachines.csv
   
@@ -50,8 +52,14 @@ $sLogFilename = "WindowsMachineSoftwareInstallation_$sCurrentDate.log"
 Param (
 # [Mandatory]  
 # [ValidateNotNullOrEmpty()]
-  # [string] $Windows ServerserverList = $gWindows ServerserverListCsvFilePath
-  [string] $WindowsMachineList
+# [string] $WindowsMachineList
+[string] $WindowsMachineList
+)
+Param (
+# [Mandatory]  
+# [ValidateNotNullOrEmpty()]
+# [string] $App1 
+[string] $GetApp1
 )
 #endregion Parameters
 
@@ -94,6 +102,12 @@ Checks if specific software already exists, i.e. if it is already installed on t
     Try 
     {
 
+     if (Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "*$GetApp1*"})
+     {
+      return $true;
+     }
+     return $false;
+
         }
 
       }
@@ -104,16 +118,11 @@ Checks if specific software already exists, i.e. if it is already installed on t
     Break
   }
 
-    }
-
   End {
     If ($?) {
       Write-Log -Level INFO -Message "Function CheckIfExists execution completed successfully."
     }
   }
-
-}
-
 
 }
 
@@ -156,7 +165,7 @@ function InstallSoftware {
     Break
   }
 
-    }
+
 
   End {
     If ($?) {
@@ -167,7 +176,58 @@ function InstallSoftware {
 }
 
 
+
+
+function UnInstallSoftware {
+<# Function documentation
+        .SYNOPSIS
+       Uninstalls software components from a Windows machine.
+        .DESCRIPTION
+        .PARAMETER MachineName
+        MachineName of which to uninstall software components.
+        .INPUTS
+        N/A
+        .OUTPUTS
+        N/A
+        .EXAMPLE
+        PS> extension -name "File"
+        File.txt
+        .LINK
+        Online version: https://github.com/stefanoscloud
+    #>
+  Param ([string]$ServerName)
+
+  Begin {
+    Write-Log -Level INFO -Message "Function UnInstallSoftware is being initialized"
+  }
+
+  Process {
+    Try 
+    {
+
+     $App1 = Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "*$GetApp1*"} | Select Name
+     $App1.Uninstall()
+
+        }
+
+      }
+
+  Catch {
+    Write-Log -Level ERROR -Message 'This is the exception stack of UnInstallSoftware function: {0}!' -Arguments $_.Exception 
+    $PSCmdlet.ThrowTerminatingError($PSItem)
+    Break
+  }
+
+
+
+  End {
+    If ($?) {
+      Write-Log -Level INFO -Message "Function UnInstallSoftware execution completed successfully."
+    }
+  }
+
 }
+
 
 
 
@@ -185,8 +245,17 @@ function InstallSoftware {
 #Main script Execution goes here
 Try  {
   
-  CheckIfExists()
-  InstallSoftware()
+ #Install
+ #If (!CheckIfExists($GetApp1))
+ #{
+ #InstallSoftware($GetApp1)
+ #}
+ 
+ #UnInstall
+ If (CheckIfExists($GetApp1))
+ {
+ UnInstallSoftware($GetApp1)
+ }
   
      }
   
