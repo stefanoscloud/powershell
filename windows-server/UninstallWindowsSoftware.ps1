@@ -13,7 +13,7 @@ using namespace System.Management.Automation.Host
 #----------------------------------------------------------[Script documentation]----------------------------------------------------------
 <#
 .SYNOPSIS
-  This script automates Windows software installation into multiple machines provided in a csv list
+  This script automates Windows software uninstallation fom multiple machines provided in a csv list
 .DESCRIPTION
   The script installs software components statically specified inside the script into multiple Windows servers or clients provided in a csv file.
 .PARAMETER WindowsMachineList
