@@ -212,7 +212,7 @@ function UnInstallSoftware {
     Try 
     {
 
-     $App1 = Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "*$GetApp1*"} | Select Name
+     $App1 = Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "$GetApp1"}
      $App1.Uninstall()
 
         }
