@@ -52,9 +52,12 @@ $sLogFilename = "WindowsMachineSoftwareInstallation_$sCurrentDate.log"
 Param (
 # [Mandatory]  
 # [ValidateNotNullOrEmpty()]
-# [string] $WindowsMachineList
-[string] $WindowsMachineList
-[string] $GetApp1
+
+     [Parameter()]
+     [string] $WindowsMachineList,
+ 
+     [Parameter()]
+     [string] $GetApp1
 )
 #endregion Parameters
 
