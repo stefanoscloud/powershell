@@ -43,7 +43,7 @@ $sScriptVersion = '1.0'
 #Log File Info
 $sLogPath = 'C:\Scripts\Cloud\Logs'
 $sCurrentDate = (get-date).ToString('ddMMyyyy')
-$sLogFilename = "WindowsMachineSoftwareInstallation_$sCurrentDate.log"
+$sLogFilename = "WindowsMachineSoftwareUninstallation_$sCurrentDate.log"
 #Various static variables go here
 #endregion StaticVariables
 
