@@ -54,11 +54,6 @@ Param (
 # [ValidateNotNullOrEmpty()]
 # [string] $WindowsMachineList
 [string] $WindowsMachineList
-)
-Param (
-# [Mandatory]  
-# [ValidateNotNullOrEmpty()]
-# [string] $App1 
 [string] $GetApp1
 )
 #endregion Parameters
