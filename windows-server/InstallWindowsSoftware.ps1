@@ -93,6 +93,7 @@ Checks if specific software already exists, i.e. if it is already installed on t
         Online version: https://github.com/stefanoscloud
     #>
   Param ([string]$MachineName)
+  Param ([string]$GetApp1)
 
   Begin {
     Write-Log -Level INFO -Message "Function CheckIfExists is being initialized"
@@ -145,7 +146,8 @@ function InstallSoftware {
         .LINK
         Online version: https://github.com/stefanoscloud
     #>
-  Param ([string]$ServerName)
+  Param ([string]$MachineName)
+  Param ([string]$GetApp1)
 
   Begin {
     Write-Log -Level INFO -Message "Function InstallSoftware is being initialized"
@@ -195,7 +197,8 @@ function UnInstallSoftware {
         .LINK
         Online version: https://github.com/stefanoscloud
     #>
-  Param ([string]$ServerName)
+  Param ([string]$MachineName)
+  Param ([string]$GetApp1)
 
   Begin {
     Write-Log -Level INFO -Message "Function UnInstallSoftware is being initialized"
