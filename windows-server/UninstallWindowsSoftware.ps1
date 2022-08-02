@@ -43,8 +43,9 @@ $sScriptVersion = '1.0'
 #Log File Info
 $sLogPath = 'C:\Scripts\Cloud\Logs'
 $sCurrentDate = (get-date).ToString('ddMMyyyy')
-$sLogFilename = "WindowsMachineSoftwareUninstallation_$sCurrentDate.log"
+$sLogFilename = "WindowsMachineSoftwareInstallation_$sCurrentDate.log"
 #Various static variables go here
+$sDefaultMachineList = 'C:\Scripts\Cloud\DefaultMachineList.csv'
 #endregion StaticVariables
 
 #region Parameters
@@ -89,8 +90,8 @@ Checks if specific software already exists, i.e. if it is already installed on t
         .LINK
         Online version: https://github.com/stefanoscloud
     #>
-  #Param ([string]$MachineName)
-  #Param ([string]$GetApp1)
+Param ([string]$ServerName)
+Param ([string]$GetApp1)
 
   Begin {
     Write-Log -Level INFO -Message "Function CheckIfExists is being initialized"
@@ -100,11 +101,16 @@ Checks if specific software already exists, i.e. if it is already installed on t
     Try 
     {
 
-     if (Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "*$GetApp1*"})
+    Invoke-Command -ComputerName $ServerName -ScriptBlock 
+    {
+       if (Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -eq "$GetApp1"})
      {
       return $true;
      }
      return $false;
+
+    }
+    
 
 
         }
@@ -209,11 +215,64 @@ function UnInstallSoftware {
   }
 
   Process {
+
+
+
     Try 
     {
+#Core commands below for one machine
+# $App1 = Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "$GetApp1"}
+# $App1.Uninstall()
 
-     $App1 = Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "$GetApp1"}
-     $App1.Uninstall()
+
+#Remote Powershell invocation as per the machine csv file
+        $ServerListCsvPath = Read-Host "Provide the absolute path to the csv file containing all servers to include for software uninstallation. Use pre-formatted csv. Leave blank for default path."
+        if(!$ServerListCsvPath)
+        {
+          $ServerListCsvPathExport = Import-Csv $sDefaultMachineList
+        }
+        else {
+          $ServerListCsvPathExport = Import-Csv $ServerListCsvPath
+        }
+        $ServerList = $ServerListCsvPathExport.Servers
+
+        Write-Log -Level INFO -Message "You have chosen to uninstall the $GetApp1 software from the following machines:"
+        Write-Log -Level INFO -Message "$ServerList"
+        Write-Host -ForegroundColor "Yellow" "You have chosen to uninstall the $GetApp1 software from the following machines:"
+        Write-Host -ForegroundColor "Yellow" "$ServerList"
+        Read-Host "Press Enter to continue..."
+        Write-Log -Level INFO -Message "Uninstalling software from machines..."
+        Write-Host -ForegroundColor "Yellow" "Uninstalling software from machines..."
+        foreach ($Server in $ServerList)
+        {
+          Invoke-Command -ComputerName $ServerName -ScriptBlock {Start-Process $App1 = Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "$GetApp1"}; $App1.Uninstall()}
+          Write-Log -Level INFO -Message "Uninstalling software from machine $Server..."
+          Write-Host -ForegroundColor "Yellow" "Uninstalling software from machine $Server..."
+        }
+        Write-Log -Level INFO -Message "Waiting for all machines' uninstallation to complete..."
+        Write-Host -ForegroundColor "Yellow" "Waiting for all machines' uninstallation to complete..."
+   
+        foreach ($Server in $ServerList)
+        {
+        
+          Start-Sleep 20
+         while (Invoke-Command -ComputerName $ServerName -ScriptBlock {CheckIfExists($GetApp1)} -eq $true )
+        
+{
+
+{Start-Sleep 20}
+          
+}
+
+          Write-Log -Level INFO -Message "Machine $Server software uninstallation completed"
+          Write-Host -ForegroundColor "DarkGreen" "Machine $Server software uninstallation completed"
+
+        }
+        Start-Sleep 20
+        Write-Log -Level INFO -Message "All machines' uninstallations have been completed"
+        Write-Host -ForegroundColor "DarkGreen" "All machines' uninstallations have been completed"
+
+
 
         }
 
@@ -288,6 +347,6 @@ Finally {
 
 
 #Stop Logging
-Stop-Log -LogPath $sLogFile
+#Stop-Log -LogPath $sLogFile
 
 #endregion MainScript
