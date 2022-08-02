@@ -50,8 +50,6 @@ $sLogFilename = "WindowsMachineSoftwareInstallation_$sCurrentDate.log"
 #region Parameters
 #---------------------------------------------------------[Script Parameters]------------------------------------------------------
 Param (
-# [Mandatory]  
-# [ValidateNotNullOrEmpty()]
 
      [Parameter()]
      [string] $WindowsMachineList,
