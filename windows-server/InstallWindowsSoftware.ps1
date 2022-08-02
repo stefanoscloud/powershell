@@ -264,9 +264,11 @@ Try  {
  #InstallSoftware($GetApp1)
  #}
  
+ Write-Host "Checking presence of $GetApp1 software and then uninstalling the software"
  #UnInstall
  If (CheckIfExists($GetApp1))
  {
+   Write-Host "Uninstalling $GetApp1..."
  UnInstallSoftware($GetApp1)
  }
   
