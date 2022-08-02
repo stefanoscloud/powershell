@@ -92,7 +92,7 @@ Checks if specific software already exists, i.e. if it is already installed on t
         .LINK
         Online version: https://github.com/stefanoscloud
     #>
-  Param ([string]$MachineName)
+  #Param ([string]$MachineName)
   Param ([string]$GetApp1)
 
   Begin {
@@ -149,7 +149,7 @@ function InstallSoftware {
         .LINK
         Online version: https://github.com/stefanoscloud
     #>
-  Param ([string]$MachineName)
+  #Param ([string]$MachineName)
   Param ([string]$GetApp1)
 
   Begin {
@@ -204,7 +204,7 @@ function UnInstallSoftware {
         .LINK
         Online version: https://github.com/stefanoscloud
     #>
-  Param ([string]$MachineName)
+  #Param ([string]$MachineName)
   Param ([string]$GetApp1)
 
   Begin {
