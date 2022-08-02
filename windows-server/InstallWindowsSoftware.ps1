@@ -49,7 +49,7 @@ $sLogFilename = "WindowsMachineSoftwareInstallation_$sCurrentDate.log"
 
 #region Parameters
 #---------------------------------------------------------[Script Parameters]------------------------------------------------------
-Param (
+<#Param (
 
      [Parameter()]
      [string] $WindowsMachineList,
@@ -57,6 +57,7 @@ Param (
      [Parameter()]
      [string] $GetApp1
 )
+#>
 #endregion Parameters
 
 #region Initializations
@@ -89,7 +90,7 @@ Checks if specific software already exists, i.e. if it is already installed on t
         Online version: https://github.com/stefanoscloud
     #>
   #Param ([string]$MachineName)
-  Param ([string]$GetApp1)
+  #Param ([string]$GetApp1)
 
   Begin {
     Write-Log -Level INFO -Message "Function CheckIfExists is being initialized"
@@ -146,7 +147,7 @@ function InstallSoftware {
         Online version: https://github.com/stefanoscloud
     #>
   #Param ([string]$MachineName)
-  Param ([string]$GetApp1)
+  #Param ([string]$GetApp1)
 
   Begin {
     Write-Log -Level INFO -Message "Function InstallSoftware is being initialized"
@@ -201,7 +202,7 @@ function UnInstallSoftware {
         Online version: https://github.com/stefanoscloud
     #>
   #Param ([string]$MachineName)
-  Param ([string]$GetApp1)
+  #Param ([string]$GetApp1)
 
   Begin {
     Write-Log -Level INFO -Message "Function UnInstallSoftware is being initialized"
@@ -254,6 +255,8 @@ function UnInstallSoftware {
 
 #Main script Execution goes here
 Try  {
+
+  $GetApp1 = args[0]
   
  #Install
  #If (!CheckIfExists($GetApp1))
