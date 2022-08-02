@@ -256,7 +256,7 @@ function UnInstallSoftware {
 #Main script Execution goes here
 Try  {
 
-  $GetApp1 = args[0]
+  $GetApp1 = $args[0]
   
  #Install
  #If (!CheckIfExists($GetApp1))
