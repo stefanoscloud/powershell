@@ -109,9 +109,6 @@ Checks if specific software already exists, i.e. if it is already installed on t
      }
      return $false;
 
-        }
-
-      }
 
   Catch {
     Write-Log -Level ERROR -Message 'This is the exception stack of CheckIfExists function: {0}!' -Arguments $_.Exception 
@@ -124,6 +121,11 @@ Checks if specific software already exists, i.e. if it is already installed on t
       Write-Log -Level INFO -Message "Function CheckIfExists execution completed successfully."
     }
   }
+        }
+
+      }
+
+
 
 }
 
@@ -159,9 +161,7 @@ function InstallSoftware {
 
         }
 
-      }
-
-  Catch {
+         Catch {
     Write-Log -Level ERROR -Message 'This is the exception stack of InstallSoftware function: {0}!' -Arguments $_.Exception 
     $PSCmdlet.ThrowTerminatingError($PSItem)
     Break
@@ -174,6 +174,10 @@ function InstallSoftware {
       Write-Log -Level INFO -Message "Function InstallSoftware execution completed successfully."
     }
   }
+
+      }
+
+ 
 
 }
 
@@ -213,7 +217,6 @@ function UnInstallSoftware {
 
         }
 
-      }
 
   Catch {
     Write-Log -Level ERROR -Message 'This is the exception stack of UnInstallSoftware function: {0}!' -Arguments $_.Exception 
@@ -228,6 +231,9 @@ function UnInstallSoftware {
       Write-Log -Level INFO -Message "Function UnInstallSoftware execution completed successfully."
     }
   }
+
+      }
+
 
 }
 
@@ -261,9 +267,8 @@ Try  {
  }
   
      }
-  
-  
-Catch {
+
+     Catch {
       Write-Log -Level ERROR -Message 'This is the exception stack of the main script: {0}!' -Arguments $_.Exception       
       $PSCmdlet.ThrowTerminatingError($PSItem)
       Break
@@ -272,6 +277,9 @@ Catch {
 Finally {
     Write-Log -Level INFO -Message "Main script execution completed successfully."
         }
+  
+  
+
 
 #Stop Logging
 Stop-Log -LogPath $sLogFile
