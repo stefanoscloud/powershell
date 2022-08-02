@@ -110,18 +110,19 @@ Checks if specific software already exists, i.e. if it is already installed on t
      return $false;
 
 
-  Catch {
+        }
+
+          Catch {
     Write-Log -Level ERROR -Message 'This is the exception stack of CheckIfExists function: {0}!' -Arguments $_.Exception 
     $PSCmdlet.ThrowTerminatingError($PSItem)
     Break
   }
 
-  End {
+          End {
     If ($?) {
       Write-Log -Level INFO -Message "Function CheckIfExists execution completed successfully."
     }
   }
-        }
 
       }
 
@@ -169,13 +170,15 @@ function InstallSoftware {
 
 
 
+      }
+
+
+
   End {
     If ($?) {
       Write-Log -Level INFO -Message "Function InstallSoftware execution completed successfully."
     }
   }
-
-      }
 
  
 
@@ -226,13 +229,15 @@ function UnInstallSoftware {
 
 
 
-  End {
+  
+
+      }
+
+      End {
     If ($?) {
       Write-Log -Level INFO -Message "Function UnInstallSoftware execution completed successfully."
     }
   }
-
-      }
 
 
 }
