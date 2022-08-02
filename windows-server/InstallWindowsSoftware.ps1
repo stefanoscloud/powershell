@@ -66,7 +66,11 @@ $sDefaultMachineList = 'C:\Scripts\Cloud\DefaultMachineList.csv'
 #Set Error Action to Stop
 $ErrorActionPreference = 'Stop'
 #Import Modules & Snap-ins
-#All modules' initialization occurs here
+#WriteLogEntry module is available in Daas-Mgmt server under C:\Scripts\Cloud\PSLogging folder.
+Import-Module -Name Logging -Verbose
+Set-LoggingDefaultLevel -Level 'DEBUG' 
+Add-LoggingTarget -Name File -Configuration @{Level = 'DEBUG'; Path = "$sLogPath\$sLogFilename"}
+#Citrix Powershell SDK snap-ins initialization
 #endregion Initializations
 
 #region Functions
